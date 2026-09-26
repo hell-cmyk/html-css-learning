@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Wall Lab — Manager Dashboard</title>
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Config (same as storefront) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        charcoal: {
+                            50: '#f6f6f6', 100: '#e7e7e7', 200: '#d1d1d1',
+                            300: '#b0b0b0', 400: '#888888', 500: '#6d6d6d',
+                            600: '#5d5d5d', 700: '#4f4f4f', 800: '#454545',
+                            900: '#3d3d3d', 950: '#2a2a2a',
+                        },
+                        studio: {
+                            bg: '#1a1a1a', card: '#242424', border: '#333333',
+                            hover: '#2e2e2e', accent: '#e5e5e5',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Playfair Display', 'Georgia', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* Toggle switch styles */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background-color: #4f4f4f;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .toggle-slider:before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #22c55e;
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Toast animation */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .toast-enter { animation: slideInRight 0.3s ease-out; }
+        .toast-exit { animation: slideOutRight 0.3s ease-in; }
+
+        /* Image preview transitions */
+        .image-preview-wrapper {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-studio-bg text-gray-200 font-sans antialiased min-h-screen">
+
+    <!-- ============================================ -->
+    <!-- ADMIN NAVIGATION                              -->
+    <!-- ============================================ -->
+    <nav class="sticky top-0 z-50 bg-studio-bg/95 backdrop-blur-md border-b border-studio-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 sm:h-20">
+                <!-- Logo & Title -->
+                <div class="flex items-center gap-3">
+                    <a href="index.html" class="flex items-center gap-3 group">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 border-2 border-white/80 flex items-center justify-center group-hover:bg-white group-hover:text-studio-bg">
+                            <span class="font-serif font-bold text-sm sm:text-base leading-none">W</span>
+                        </div>
+                    </a>
+                    <div>
+                        <span class="text-white font-semibold text-base sm:text-lg tracking-wide">THE WALL LAB</span>
+                        <span class="block text-[10px] uppercase tracking-[0.2em] text-amber-400/80 -mt-0.5">Manager Dashboard</span>
+                    </div>
+                </div>
+
+                <!-- Right Actions -->
+                <div class="flex items-center gap-3 sm:gap-4">
+                    <!-- Stats badges -->
+                    <div class="hidden sm:flex items-center gap-4 mr-4">
+                        <div class="text-center">
+                            <span id="statTotal" class="block text-lg font-bold text-white">0</span>
+                            <span class="text-[10px] uppercase tracking-wider text-charcoal-500">Total</span>
+                        </div>
+                        <div class="w-px h-8 bg-studio-border"></div>
+                        <div class="text-center">
+                            <span id="statLive" class="block text-lg font-bold text-green-400">0</span>
+                            <span class="text-[10px] uppercase tracking-wider text-charcoal-500">Live</span>
+                        </div>
+                        <div class="w-px h-8 bg-studio-border"></div>
+                        <div class="text-center">
+                            <span id="statDraft" class="block text-lg font-bold text-charcoal-400">0</span>
+                            <span class="text-[10px] uppercase tracking-wider text-charcoal-500">Draft</span>
+                        </div>
+                    </div>
+
+                    <a href="index.html" class="flex items-center gap-2 text-xs uppercase tracking-wider text-charcoal-400 hover:text-white border border-studio-border px-3 py-2 rounded-sm hover:border-charcoal-400">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+                        </svg>
+                        <span class="hidden sm:inline">View Store</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================================ -->
+    <!-- MAIN DASHBOARD CONTENT                        -->
+    <!-- ============================================ -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+        <!-- Mobile Stats -->
+        <div class="sm:hidden grid grid-cols-3 gap-3 mb-8">
+            <div class="bg-studio-card border border-studio-border rounded-sm p-3 text-center">
+                <span id="statTotalMobile" class="block text-xl font-bold text-white">0</span>
+                <span class="text-[10px] uppercase tracking-wider text-charcoal-500">Total</span>
+            </div>
+            <div class="bg-studio-card border border-studio-border rounded-sm p-3 text-center">
+                <span id="statLiveMobile" class="block text-xl font-bold text-green-400">0</span>
+                <span class="text-[10px] uppercase tracking-wider text-charcoal-500">Live</span>
+            </div>
+            <div class="bg-studio-card border border-studio-border rounded-sm p-3 text-center">
+                <span id="statDraftMobile" class="block text-xl font-bold text-charcoal-400">0</span>
+                <span class="text-[10px] uppercase tracking-wider text-charcoal-500">Draft</span>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+
+            <!-- ================================== -->
+            <!-- LEFT: ADD / EDIT PRODUCT FORM       -->
+            <!-- ================================== -->
+            <div class="lg:col-span-1">
+                <div class="bg-studio-card border border-studio-border rounded-sm sticky top-24">
+                    <!-- Form Header -->
+                    <div class="px-6 py-5 border-b border-studio-border">
+                        <h2 id="formTitle" class="text-lg font-semibold text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-charcoal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                            </svg>
+                            Add New Product
+                        </h2>
+                        <p class="text-xs text-charcoal-500 mt-1">Fill in the details below to list a new print.</p>
+                    </div>
+
+                    <!-- Form Body -->
+                    <form id="productForm" class="px-6 py-5 space-y-4">
+                        <!-- Hidden ID for edit mode -->
+                        <input type="hidden" id="editProductId" value="">
+
+                        <!-- Photo Title -->
+                        <div>
+                            <label for="productTitle" class="block text-xs uppercase tracking-wider text-charcoal-500 mb-1.5 font-medium">Photo Title *</label>
+                            <input type="text" id="productTitle" required
+                                   class="w-full bg-studio-bg border border-studio-border rounded-sm px-4 py-2.5 text-sm text-white placeholder-charcoal-600 focus:outline-none focus:border-charcoal-400"
+                                   placeholder="e.g., Sunset Over Margalla Hills">
+                        </div>
+
+                        <!-- Category -->
+                        <div>
+                            <label for="productCategory" class="block text-xs uppercase tracking-wider text-charcoal-500 mb-1.5 font-medium">Category *</label>
+                            <select id="productCategory" required
+                                    class="w-full bg-studio-bg border border-studio-border rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-charcoal-400">
+                                <option value="">Select category</option>
+                                <option value="monochrome">Monochrome</option>
+                                <option value="urban">Urban Architecture</option>
+                                <option value="vintage">Vintage</option>
+                                <option value="abstract">Abstract</option>
+                                <option value="nature">Nature</option>
+                                <option value="portrait">Portrait</option>
+                                <option value="street">Street Photography</option>
+                            </select>
+                        </div>
+
+                        <!-- Price -->
+                        <div>
+                            <label for="productPrice" class="block text-xs uppercase tracking-wider text-charcoal-500 mb-1.5 font-medium">Price (PKR) *</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal-500 text-sm">PKR</span>
+                                <input type="number" id="productPrice" required min="100" step="50"
+                                       class="w-full bg-studio-bg border border-studio-border rounded-sm pl-14 pr-4 py-2.5 text-sm text-white placeholder-charcoal-600 focus:outline-none focus:border-charcoal-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                       placeholder="3500">
+                            </div>
+                        </div>
+
+                        <!-- Available Sizes -->
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-charcoal-500 mb-2 font-medium">Available Sizes *</label>
+                            <div class="flex flex-wrap gap-2">
+                                <label class="flex items-center gap-2 bg-studio-bg border border-studio-border rounded-sm px-3 py-2 cursor-pointer hover:border-charcoal-400 has-[:checked]:border-white has-[:checked]:bg-studio-hover">
+                                    <input type="checkbox" name="sizes" value="A4" class="accent-white w-3.5 h-3.5" checked>
+                                    <span class="text-xs text-charcoal-300">A4</span>
+                                </label>
+                                <label class="flex items-center gap-2 bg-studio-bg border border-studio-border rounded-sm px-3 py-2 cursor-pointer hover:border-charcoal-400 has-[:checked]:border-white has-[:checked]:bg-studio-hover">
+                                    <input type="checkbox" name="sizes" value="A3" class="accent-white w-3.5 h-3.5" checked>
+                                    <span class="text-xs text-charcoal-300">A3</span>
+                                </label>
+                                <label class="flex items-center gap-2 bg-studio-bg border border-studio-border rounded-sm px-3 py-2 cursor-pointer hover:border-charcoal-400 has-[:checked]:border-white has-[:checked]:bg-studio-hover">
+                                    <input type="checkbox" name="sizes" value="A2" class="accent-white w-3.5 h-3.5">
+                                    <span class="text-xs text-charcoal-300">A2</span>
+                                </label>
+                                <label class="flex items-center gap-2 bg-studio-bg border border-studio-border rounded-sm px-3 py-2 cursor-pointer hover:border-charcoal-400 has-[:checked]:border-white has-[:checked]:bg-studio-hover">
+                                    <input type="checkbox" name="sizes" value="Custom" class="accent-white w-3.5 h-3.5">
+                                    <span class="text-xs text-charcoal-300">Custom</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Image URL -->
+                        <div>
+                            <label for="productImage" class="block text-xs uppercase tracking-wider text-charcoal-500 mb-1.5 font-medium">Image URL *</label>
+                            <input type="url" id="productImage" required
+                                   class="w-full bg-studio-bg border border-studio-border rounded-sm px-4 py-2.5 text-sm text-white placeholder-charcoal-600 focus:outline-none focus:border-charcoal-400"
+                                   placeholder="https://images.unsplash.com/photo-..."
+                                   oninput="previewImage(this.value)">
+                            <!-- Image Preview -->
+                            <div id="imagePreview" class="image-preview-wrapper mt-3 hidden">
+                                <div class="aspect-[4/3] bg-studio-bg border border-studio-border rounded-sm overflow-hidden">
+                                    <img id="previewImg" src="" alt="Preview" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div>
+                            <label for="productDescription" class="block text-xs uppercase tracking-wider text-charcoal-500 mb-1.5 font-medium">Description *</label>
+                            <textarea id="productDescription" rows="3" required
+                                      class="w-full bg-studio-bg border border-studio-border rounded-sm px-4 py-2.5 text-sm text-white placeholder-charcoal-600 focus:outline-none focus:border-charcoal-400 resize-none"
+                                      placeholder="A brief description of the photograph..."></textarea>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="flex items-center justify-between py-2">
+                            <div>
+                                <span class="text-xs uppercase tracking-wider text-charcoal-500 font-medium">Publish Immediately</span>
+                                <p class="text-[10px] text-charcoal-600 mt-0.5">Make product live on store</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="productStatus" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="flex gap-3 pt-2">
+                            <button type="submit" id="submitBtn"
+                                    class="flex-1 bg-white text-studio-bg py-3 font-semibold text-sm uppercase tracking-wider hover:bg-charcoal-200 rounded-sm flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                                </svg>
+                                <span id="submitBtnText">Add Product</span>
+                            </button>
+                            <button type="button" id="cancelEditBtn" onclick="cancelEdit()"
+                                    class="hidden px-4 py-3 border border-studio-border text-charcoal-400 hover:text-white hover:border-charcoal-400 text-sm uppercase tracking-wider rounded-sm">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ================================== -->
+            <!-- RIGHT: PRODUCT INVENTORY TABLE      -->
+            <!-- ================================== -->
+            <div class="lg:col-span-2">
+                <!-- Table Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-xl font-semibold text-white">Product Inventory</h2>
+                        <p class="text-xs text-charcoal-500 mt-0.5">Manage your listed photographs</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <!-- Filter by status -->
+                        <select id="adminStatusFilter"
+                                class="bg-studio-card border border-studio-border rounded-sm px-3 py-2 text-xs text-charcoal-300 focus:outline-none focus:border-charcoal-400">
+                            <option value="all">All Status</option>
+                            <option value="live">Live Only</option>
+                            <option value="draft">Drafts Only</option>
+                        </select>
+                        <!-- Search -->
+                        <div class="relative">
+                            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-charcoal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                            </svg>
+                            <input type="text" id="adminSearch" placeholder="Search..."
+                                   class="bg-studio-card border border-studio-border rounded-sm pl-8 pr-3 py-2 text-xs text-white placeholder-charcoal-500 focus:outline-none focus:border-charcoal-400 w-40">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory List -->
+                <div id="inventoryList" class="space-y-3">
+                    <!-- Products injected by JS -->
+                </div>
+
+                <!-- Empty state -->
+                <div id="adminEmptyState" class="hidden text-center py-16">
+                    <svg class="w-16 h-16 mx-auto text-charcoal-700 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
+                    </svg>
+                    <h3 class="text-lg font-medium text-charcoal-300 mb-1">No products found</h3>
+                    <p class="text-charcoal-500 text-sm">Use the form to add your first product.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================== -->
+        <!-- DANGER ZONE                         -->
+        <!-- ================================== -->
+        <div class="mt-16 pt-10 border-t border-studio-border/50">
+            <div class="bg-red-950/20 border border-red-900/30 rounded-sm p-6">
+                <h3 class="text-sm font-semibold text-red-400 uppercase tracking-wider mb-2">Danger Zone</h3>
+                <p class="text-xs text-charcoal-500 mb-4">These actions are irreversible. Proceed with caution.</p>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="confirmResetProducts()"
+                            class="text-xs uppercase tracking-wider text-red-400 border border-red-900/50 hover:border-red-400 px-4 py-2 rounded-sm hover:bg-red-950/30">
+                        Reset to Default Products
+                    </button>
+                    <button onclick="confirmDeleteAll()"
+                            class="text-xs uppercase tracking-wider text-red-400 border border-red-900/50 hover:border-red-400 px-4 py-2 rounded-sm hover:bg-red-950/30">
+                        Delete All Products
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-studio-border/50 py-6 mt-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-xs text-charcoal-600">The Wall Lab Manager Dashboard — Changes sync instantly to the storefront.</p>
+        </div>
+    </footer>
+
+    <!-- ============================================ -->
+    <!-- DELETE CONFIRMATION MODAL                     -->
+    <!-- ============================================ -->
+    <div id="deleteModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeDeleteModal()"></div>
+        <div class="relative bg-studio-bg border border-studio-border rounded-sm w-full max-w-sm p-6 shadow-2xl">
+            <h3 class="text-lg font-semibold text-white mb-2">Delete Product</h3>
+            <p id="deleteModalText" class="text-sm text-charcoal-400 mb-6">Are you sure you want to delete this product? This action cannot be undone.</p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()"
+                        class="flex-1 py-2.5 border border-studio-border text-charcoal-400 hover:text-white text-sm rounded-sm">
+                    Cancel
+                </button>
+                <button id="confirmDeleteBtn"
+                        class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-sm">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-24 right-4 z-[90] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
