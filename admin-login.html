@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Wall Lab — Manager Access</title>
+
+    <!-- Prevent search engine indexing of admin pages -->
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        charcoal: {
+                            50: '#f6f6f6', 100: '#e7e7e7', 200: '#d1d1d1',
+                            300: '#b0b0b0', 400: '#888888', 500: '#6d6d6d',
+                            600: '#5d5d5d', 700: '#4f4f4f', 800: '#454545',
+                            900: '#3d3d3d', 950: '#2a2a2a',
+                        },
+                        studio: {
+                            bg: '#1a1a1a', card: '#242424', border: '#333333',
+                            hover: '#2e2e2e', accent: '#e5e5e5',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Playfair Display', 'Georgia', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+        /* Animated background grid */
+        .login-bg {
+            background-image:
+                radial-gradient(ellipse at 30% 40%, rgba(80, 80, 80, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 60%, rgba(100, 100, 100, 0.04) 0%, transparent 60%);
+        }
+
+        /* Subtle pulse on lock icon */
+        @keyframes lockPulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        .lock-pulse { animation: lockPulse 3s ease-in-out infinite; }
+
+        /* Shake animation for wrong password */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+            20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+        .shake { animation: shake 0.5s ease-in-out; }
+
+        /* Fade in */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.6s ease-out; }
+
+        /* Loading spinner */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        /* Password strength indicator */
+        .strength-bar {
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-studio-bg text-gray-200 font-sans antialiased min-h-screen login-bg flex items-center justify-center p-4">
+
+    <!-- ============================================ -->
+    <!-- BACKGROUND GRID PATTERN                       -->
+    <!-- ============================================ -->
+    <div class="fixed inset-0 opacity-[0.02] pointer-events-none"
+         style="background-image: linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px); background-size: 60px 60px;">
+    </div>
+
+    <!-- ============================================ -->
+    <!-- LOGIN CARD                                    -->
+    <!-- ============================================ -->
+    <div class="relative w-full max-w-md fade-in">
+
+        <!-- Back to Store link -->
+        <a href="index.html"
+           class="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-charcoal-600 hover:text-charcoal-300 mb-8 group">
+            <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+            </svg>
+            Back to Store
+        </a>
+
+        <!-- Card -->
+        <div id="loginCard" class="bg-studio-card border border-studio-border rounded-sm shadow-2xl overflow-hidden">
+
+            <!-- Header -->
+            <div class="px-8 pt-10 pb-6 text-center border-b border-studio-border/50">
+                <!-- Logo -->
+                <div class="flex items-center justify-center gap-3 mb-6">
+                    <div class="w-12 h-12 border-2 border-white/80 flex items-center justify-center">
+                        <span class="font-serif font-bold text-xl leading-none text-white">W</span>
+                    </div>
+                </div>
+
+                <!-- Lock Icon -->
+                <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-studio-bg border border-studio-border flex items-center justify-center lock-pulse">
+                    <svg class="w-6 h-6 text-charcoal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                    </svg>
+                </div>
+
+                <h1 class="text-xl font-semibold text-white mb-1">Manager Access</h1>
+                <p class="text-xs text-charcoal-500">Enter your password to access the dashboard</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="px-8 py-8">
+                <!-- Error Message Area -->
+                <div id="loginError" class="hidden mb-5 p-3 bg-red-950/30 border border-red-900/30 rounded-sm">
+                    <div class="flex items-start gap-2">
+                        <svg class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                        </svg>
+                        <span id="loginErrorText" class="text-sm text-red-300"></span>
+                    </div>
+                </div>
+
+                <!-- Lockout Warning -->
+                <div id="lockoutWarning" class="hidden mb-5 p-3 bg-amber-950/30 border border-amber-900/30 rounded-sm">
+                    <div class="flex items-start gap-2">
+                        <svg class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span id="lockoutText" class="text-sm text-amber-300"></span>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="mb-6">
+                    <label for="passwordInput" class="block text-xs uppercase tracking-wider text-charcoal-500 mb-2 font-medium">Password</label>
+                    <div class="relative">
+                        <div class="absolute left-3.5 top-1/2 -translate-y-1/2">
+                            <svg class="w-4 h-4 text-charcoal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
+                            </svg>
+                        </div>
+                        <input type="password" id="passwordInput"
+                               class="w-full bg-studio-bg border border-studio-border rounded-sm pl-10 pr-12 py-3.5 text-sm text-white placeholder-charcoal-600 focus:outline-none focus:border-charcoal-400"
+                               placeholder="Enter manager password"
+                               autocomplete="off"
+                               autofocus>
+                        <!-- Show/Hide toggle -->
+                        <button type="button" id="togglePassword"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-charcoal-500 hover:text-charcoal-300"
+                                aria-label="Toggle password visibility">
+                            <svg id="eyeIcon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <svg id="eyeOffIcon" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="loginBtn"
+                        class="w-full bg-white text-studio-bg py-3.5 font-semibold text-sm uppercase tracking-wider hover:bg-charcoal-200 rounded-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span id="loginBtnText">Access Dashboard</span>
+                    <div id="loginSpinner" class="hidden w-4 h-4 spinner text-studio-bg"></div>
+                </button>
+            </form>
+
+            <!-- Footer Note -->
+            <div class="px-8 pb-6 text-center">
+                <p class="text-[10px] text-charcoal-700">
+                    Authorized personnel only. All access attempts are logged.
+                </p>
+            </div>
+        </div>
+
+        <!-- Hint (only visible in development/demo) -->
+        <div class="mt-6 text-center">
+            <button id="hintToggle" class="text-[10px] text-charcoal-700 hover:text-charcoal-500 cursor-pointer">
+                Need help accessing?
+            </button>
+            <div id="hintContent" class="hidden mt-2 text-[10px] text-charcoal-600 bg-studio-card/50 border border-studio-border/50 rounded-sm p-3">
+                Default password: <code class="text-charcoal-400 bg-studio-bg px-1.5 py-0.5 rounded">admin123</code>
+                <br>
+                <span class="text-charcoal-700">You can change this from the dashboard settings.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script>
+        /**
+         * Admin Login Page Logic
+         * Handles form submission, lockout display, and session redirect
+         */
+
+        const loginForm = document.getElementById('loginForm');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        const loginSpinner = document.getElementById('loginSpinner');
+        const loginError = document.getElementById('loginError');
+        const loginErrorText = document.getElementById('loginErrorText');
+        const lockoutWarning = document.getElementById('lockoutWarning');
+        const lockoutText = document.getElementById('lockoutText');
+        const togglePassword = document.getElementById('togglePassword');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeOffIcon = document.getElementById('eyeOffIcon');
+        const loginCard = document.getElementById('loginCard');
+        const hintToggle = document.getElementById('hintToggle');
+        const hintContent = document.getElementById('hintContent');
+
+        let lockoutInterval = null;
+
+        // ================================
+        // CHECK IF ALREADY AUTHENTICATED
+        // ================================
+        // If already logged in, redirect straight to dashboard
+        if (isAuthenticated()) {
+            window.location.href = 'admin.html';
+        }
+
+        // ================================
+        // CHECK LOCKOUT ON LOAD
+        // ================================
+        checkAndDisplayLockout();
+
+        // ================================
+        // FORM SUBMISSION
+        // ================================
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const password = passwordInput.value;
+
+            // Show loading state
+            loginBtn.disabled = true;
+            loginBtnText.textContent = 'Verifying...';
+            loginSpinner.classList.remove('hidden');
+            hideError();
+
+            // Simulate brief delay for UX feel (and to slow brute force)
+            setTimeout(() => {
+                const result = attemptLogin(password);
+
+                loginBtn.disabled = false;
+                loginBtnText.textContent = 'Access Dashboard';
+                loginSpinner.classList.add('hidden');
+
+                if (result.success) {
+                    // Success — show success state then redirect
+                    loginBtnText.textContent = 'Access Granted';
+                    loginBtn.classList.remove('bg-white', 'hover:bg-charcoal-200');
+                    loginBtn.classList.add('bg-green-600', 'text-white');
+                    loginBtn.disabled = true;
+
+                    // Brief delay before redirect for visual feedback
+                    setTimeout(() => {
+                        window.location.href = 'admin.html';
+                    }, 600);
+                } else {
+                    // Failure
+                    showError(result.message);
+                    loginCard.classList.add('shake');
+                    setTimeout(() => loginCard.classList.remove('shake'), 500);
+
+                    if (result.locked) {
+                        passwordInput.disabled = true;
+                        loginBtn.disabled = true;
+                        checkAndDisplayLockout();
+                    }
+
+                    // Clear password field
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            }, 800);
+        });
+
+        // ================================
+        // PASSWORD VISIBILITY TOGGLE
+        // ================================
+        togglePassword.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            eyeIcon.classList.toggle('hidden', !isPassword);
+            eyeOffIcon.classList.toggle('hidden', isPassword);
+        });
+
+        // ================================
+        // HINT TOGGLE
+        // ================================
+        hintToggle.addEventListener('click', () => {
+            hintContent.classList.toggle('hidden');
+        });
+
+        // ================================
+        // ENTER KEY HANDLING
+        // ================================
+        passwordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                loginForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // ================================
+        // HELPER FUNCTIONS
+        // ================================
+        function showError(message) {
+            loginErrorText.textContent = message;
+            loginError.classList.remove('hidden');
+        }
+
+        function hideError() {
+            loginError.classList.add('hidden');
+        }
+
+        function checkAndDisplayLockout() {
+            const lockout = checkLockout();
+            if (lockout.locked) {
+                passwordInput.disabled = true;
+                loginBtn.disabled = true;
+                lockoutWarning.classList.remove('hidden');
+
+                // Start countdown
+                if (lockoutInterval) clearInterval(lockoutInterval);
+                lockoutInterval = setInterval(() => {
+                    const currentLockout = checkLockout();
+                    if (currentLockout.locked) {
+                        lockoutText.textContent = `Account temporarily locked. Try again in ${currentLockout.remainingSeconds} seconds.`;
+                    } else {
+                        // Lockout expired
+                        clearInterval(lockoutInterval);
+                        lockoutWarning.classList.add('hidden');
+                        passwordInput.disabled = false;
+                        loginBtn.disabled = false;
+                        passwordInput.focus();
+                    }
+                }, 1000);
+
+                lockoutText.textContent = `Account temporarily locked. Try again in ${lockout.remainingSeconds} seconds.`;
+            }
+        }
+    </script>
+</body>
+</html>
