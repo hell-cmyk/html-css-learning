@@ -157,9 +157,7 @@
         <!-- MAIN CONTENT AREA -->
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
 
-            <!-- ====================================== -->
-            <!-- OVERVIEW STATS ROW                      -->
-            <!-- ====================================== -->
+            <!-- OVERVIEW STATS ROW -->
             <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-8">
                 <div class="bg-studio-card border border-studio-border rounded-sm p-3 sm:p-4 text-center">
                     <span id="statTotal" class="block text-xl sm:text-2xl font-bold text-white">0</span>
@@ -187,9 +185,7 @@
                 </div>
             </div>
 
-            <!-- ====================================== -->
-            <!-- TAB: PRODUCTS                           -->
-            <!-- ====================================== -->
+            <!-- TAB: PRODUCTS -->
             <div id="panel-products" class="tab-panel active">
                 <div class="grid lg:grid-cols-3 gap-8">
                     <!-- ADD / EDIT PRODUCT FORM -->
@@ -237,11 +233,22 @@
                                         <label class="flex items-center gap-2 bg-studio-bg border border-studio-border rounded-sm px-3 py-2 cursor-pointer hover:border-charcoal-400 has-[:checked]:border-white has-[:checked]:bg-studio-hover"><input type="checkbox" name="sizes" value="Custom" class="accent-white w-3.5 h-3.5"><span class="text-xs text-charcoal-300">Custom</span></label>
                                     </div>
                                 </div>
+
+                                <!-- PRODUCT IMAGE UPLOAD SECTION -->
                                 <div>
-                                    <label for="productImage" class="block text-xs uppercase tracking-wider text-charcoal-500 mb-1.5 font-medium">Image URL *</label>
-                                    <input type="url" id="productImage" required class="w-full bg-studio-bg border border-studio-border rounded-sm px-4 py-2.5 text-sm text-white placeholder-charcoal-600 focus:outline-none focus:border-charcoal-400" placeholder="https://images.unsplash.com/photo-..." oninput="previewImage(this.value)">
-                                    <div id="imagePreview" class="image-preview-wrapper mt-3 hidden"><div class="aspect-[4/3] bg-studio-bg border border-studio-border rounded-sm overflow-hidden"><img id="previewImg" src="" alt="Preview" class="w-full h-full object-cover"></div></div>
+                                    <label for="productImageFile" class="block text-xs uppercase tracking-wider text-charcoal-500 mb-1.5 font-medium">Product Image *</label>
+                                    <input type="file" id="productImageFile" accept="image/*" class="w-full bg-studio-bg border border-studio-border rounded-sm px-3 py-2 text-xs text-white file:mr-3 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-xs file:font-semibold file:bg-studio-hover file:text-white hover:file:bg-charcoal-700 cursor-pointer focus:outline-none focus:border-charcoal-400" onchange="handleImageUpload(event)">
+                                    
+                                    <!-- Hidden input storing Base64 / URL string -->
+                                    <input type="hidden" id="productImage" required>
+                                    
+                                    <div id="imagePreview" class="image-preview-wrapper mt-3 hidden">
+                                        <div class="aspect-[4/3] bg-studio-bg border border-studio-border rounded-sm overflow-hidden">
+                                            <img id="previewImg" src="" alt="Preview" class="w-full h-full object-cover">
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div>
                                     <label for="productDescription" class="block text-xs uppercase tracking-wider text-charcoal-500 mb-1.5 font-medium">Description *</label>
                                     <textarea id="productDescription" rows="3" required class="w-full bg-studio-bg border border-studio-border rounded-sm px-4 py-2.5 text-sm text-white placeholder-charcoal-600 focus:outline-none focus:border-charcoal-400 resize-none" placeholder="A brief description..."></textarea>
@@ -280,11 +287,8 @@
                 </div>
             </div>
 
-            <!-- ====================================== -->
-            <!-- TAB: ORDERS                             -->
-            <!-- ====================================== -->
+            <!-- TAB: ORDERS -->
             <div id="panel-orders" class="tab-panel">
-                <!-- Orders Header -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
                         <h2 class="text-xl font-semibold text-white flex items-center gap-2">
@@ -294,7 +298,6 @@
                         <p class="text-xs text-charcoal-500 mt-0.5">Track, update, and manage customer orders</p>
                     </div>
                     <div class="flex items-center gap-3 flex-wrap">
-                        <!-- Status filter -->
                         <select id="orderStatusFilter" class="bg-studio-card border border-studio-border rounded-sm px-3 py-2 text-xs text-charcoal-300 focus:outline-none focus:border-charcoal-400">
                             <option value="all">All Orders</option>
                             <option value="pending">⏳ Pending</option>
@@ -304,29 +307,18 @@
                             <option value="delivered">✅ Delivered</option>
                             <option value="cancelled">✕ Cancelled</option>
                         </select>
-                        <!-- Search -->
                         <div class="relative">
                             <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-charcoal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                             <input type="text" id="orderSearch" placeholder="Search orders..." class="bg-studio-card border border-studio-border rounded-sm pl-8 pr-3 py-2 text-xs text-white placeholder-charcoal-500 focus:outline-none focus:border-charcoal-400 w-44">
                         </div>
-                        <!-- Bulk action -->
                         <button onclick="confirmClearDelivered()" class="text-[10px] uppercase tracking-wider text-charcoal-500 hover:text-charcoal-300 border border-studio-border px-3 py-2 rounded-sm hover:border-charcoal-400">
                             Clear Delivered
                         </button>
                     </div>
                 </div>
 
-                <!-- Order Status Summary Chips -->
-                <div id="orderStatusChips" class="flex flex-wrap gap-2 mb-6">
-                    <!-- Filled by JS -->
-                </div>
-
-                <!-- Orders List -->
-                <div id="ordersList" class="space-y-3">
-                    <!-- Filled by JS -->
-                </div>
-
-                <!-- Orders Empty State -->
+                <div id="orderStatusChips" class="flex flex-wrap gap-2 mb-6"></div>
+                <div id="ordersList" class="space-y-3"></div>
                 <div id="ordersEmptyState" class="hidden text-center py-20">
                     <svg class="w-20 h-20 mx-auto text-charcoal-700 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="0.8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/>
@@ -336,12 +328,9 @@
                 </div>
             </div>
 
-            <!-- ====================================== -->
-            <!-- TAB: SETTINGS                           -->
-            <!-- ====================================== -->
+            <!-- TAB: SETTINGS -->
             <div id="panel-settings" class="tab-panel">
                 <div class="grid md:grid-cols-2 gap-8">
-                    <!-- Change Password -->
                     <div class="bg-studio-card border border-studio-border rounded-sm p-6">
                         <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-1 flex items-center gap-2">
                             <svg class="w-4 h-4 text-charcoal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
@@ -350,73 +339,37 @@
                         <p class="text-xs text-charcoal-600 mb-4">Update your dashboard access password.</p>
                         <form id="changePasswordForm" class="space-y-3">
                             <div id="passwordChangeResult" class="hidden p-2.5 rounded-sm text-xs"></div>
-                            <div><label class="block text-[10px] uppercase tracking-wider text-charcoal-500 mb-1">Current Password</label><input type="password" id="currentPassword" required class="w-full bg-studio-bg border border-studio-border rounded-sm px-3 py-2 text-sm text-white placeholder-charcoal-600 focus:outline-none focus:border-charcoal-400" placeholder="Enter current password"></div>
-                            <div><label class="block text-[10px] uppercase tracking-wider text-charcoal-500 mb-1">New Password</label><input type="password" id="newPassword" required minlength="4" maxlength="32" class="w-full bg-studio-bg border border-studio-border rounded-sm px-3 py-2 text-sm text-white placeholder-charcoal-600 focus:outline-none focus:border-charcoal-400" placeholder="Enter new password (min 4 chars)"></div>
-                            <div><label class="block text-[10px] uppercase tracking-wider text-charcoal-500 mb-1">Confirm New Password</label><input type="password" id="confirmPassword" required class="w-full bg-studio-bg border border-studio-border rounded-sm px-3 py-2 text-sm text-white placeholder-charcoal-600 focus:outline-none focus:border-charcoal-400" placeholder="Re-enter new password"></div>
-                            <button type="submit" class="w-full bg-studio-hover border border-studio-border text-white py-2.5 text-xs uppercase tracking-wider font-medium rounded-sm hover:border-charcoal-400">Update Password</button>
+                            <div>
+                                <label class="block text-[10px] uppercase tracking-wider text-charcoal-500 mb-1">Current Password</label>
+                                <input type="password" id="currentPassword" required class="w-full bg-studio-bg border border-studio-border rounded-sm px-3 py-2 text-sm text-white placeholder-charcoal-600 focus:outline-none focus:border-charcoal-400">
+                            </div>
                         </form>
-                    </div>
-                    <!-- Danger Zone -->
-                    <div class="bg-red-950/20 border border-red-900/30 rounded-sm p-6">
-                        <h3 class="text-sm font-semibold text-red-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
-                            Danger Zone
-                        </h3>
-                        <p class="text-xs text-charcoal-500 mb-4">Irreversible actions. Proceed with caution.</p>
-                        <div class="flex flex-wrap gap-3">
-                            <button onclick="confirmResetProducts()" class="text-xs uppercase tracking-wider text-red-400 border border-red-900/50 hover:border-red-400 px-4 py-2 rounded-sm hover:bg-red-950/30">Reset Products</button>
-                            <button onclick="confirmDeleteAll()" class="text-xs uppercase tracking-wider text-red-400 border border-red-900/50 hover:border-red-400 px-4 py-2 rounded-sm hover:bg-red-950/30">Delete All Products</button>
-                            <button onclick="confirmDeleteAllOrders()" class="text-xs uppercase tracking-wider text-red-400 border border-red-900/50 hover:border-red-400 px-4 py-2 rounded-sm hover:bg-red-950/30">Delete All Orders</button>
-                        </div>
-                        <div class="mt-6 pt-4 border-t border-red-900/20">
-                            <p class="text-[10px] uppercase tracking-wider text-charcoal-600 mb-2">Session Info</p>
-                            <div id="sessionInfo" class="text-xs text-charcoal-500 space-y-1"></div>
-                        </div>
                     </div>
                 </div>
             </div>
+
         </main>
-
-        <footer class="border-t border-studio-border/50 py-6 mt-10">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <p class="text-xs text-charcoal-600">The Wall Lab Manager Dashboard — All changes sync instantly.</p>
-            </div>
-        </footer>
     </div>
 
-    <!-- DELETE CONFIRMATION MODAL (reusable) -->
-    <div id="deleteModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 hidden">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeDeleteModal()"></div>
-        <div class="relative bg-studio-bg border border-studio-border rounded-sm w-full max-w-sm p-6 shadow-2xl">
-            <h3 id="deleteModalTitle" class="text-lg font-semibold text-white mb-2">Delete</h3>
-            <p id="deleteModalText" class="text-sm text-charcoal-400 mb-6"></p>
-            <div class="flex gap-3">
-                <button onclick="closeDeleteModal()" class="flex-1 py-2.5 border border-studio-border text-charcoal-400 hover:text-white text-sm rounded-sm">Cancel</button>
-                <button id="confirmDeleteBtn" class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-sm">Delete</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ORDER DETAIL MODAL -->
-    <div id="orderDetailModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 hidden">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeOrderDetail()"></div>
-        <div class="relative bg-studio-bg border border-studio-border rounded-sm w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-studio-border sticky top-0 bg-studio-bg z-10">
-                <h3 class="text-lg font-semibold text-white">Order Details</h3>
-                <button onclick="closeOrderDetail()" class="p-1 hover:bg-studio-hover rounded-lg text-charcoal-400 hover:text-white"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
-            </div>
-            <div id="orderDetailContent" class="px-6 py-5">
-                <!-- Filled by JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- TOAST CONTAINER -->
-    <div id="toastContainer" class="fixed top-24 right-4 z-[90] flex flex-col gap-3 pointer-events-none"></div>
-
-    <!-- Scripts -->
-    <script src="js/data.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/admin.js"></script>
+    <!-- JAVASCRIPT IMAGE UPLOAD SCRIPT -->
+    <script>
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Data = e.target.result;
+                    // Hidden input me value set karna
+                    document.getElementById('productImage').value = base64Data;
+                    
+                    // Image preview dikhana
+                    const previewImg = document.getElementById('previewImg');
+                    previewImg.src = base64Data;
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
 </body>
 </html>
