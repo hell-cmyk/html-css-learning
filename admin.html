@@ -351,7 +351,7 @@
         </main>
     </div>
 
-    <!-- JAVASCRIPT IMAGE UPLOAD SCRIPT -->
+    <!-- JAVASCRIPT IMAGE UPLOAD & AUTHENTICATION SCRIPTS -->
     <script>
         function handleImageUpload(event) {
             const file = event.target.files[0];
@@ -359,16 +359,34 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const base64Data = e.target.result;
-                    // Hidden input me value set karna
                     document.getElementById('productImage').value = base64Data;
                     
-                    // Image preview dikhana
                     const previewImg = document.getElementById('previewImg');
                     previewImg.src = base64Data;
                     document.getElementById('imagePreview').classList.remove('hidden');
                 };
                 reader.readAsDataURL(file);
             }
+        }
+    </script>
+
+    <!-- AUTHENTICATION CHECK & LOGOUT SCRIPT -->
+    <script src="js/auth.js"></script>
+    <script>
+        if (!isAuthenticated()) {
+            window.location.href = 'admin-login.html';
+        } else {
+            document.getElementById('authGate').style.display = 'none';
+            document.getElementById('dashboardContent').classList.add('authenticated');
+        }
+
+        function handleLogout() {
+            if (typeof logout === 'function') {
+                logout();
+            } else {
+                localStorage.removeItem('admin_authenticated');
+            }
+            window.location.href = 'admin-login.html';
         }
     </script>
 </body>
